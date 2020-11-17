@@ -1,5 +1,6 @@
 package org.uplifteds.entity;
 
+import java.lang.reflect.Field;
 import java.sql.Date;
 import java.sql.Timestamp;
 
@@ -8,11 +9,19 @@ public class Student {
     private String name;
     private String surname;
     private Date dob;
-    private int phone;
-    private String primarySkill;
+    private long phone;
+    private String skill;
     private Timestamp created;
     private Timestamp updated;
 
+    public static String idFieldName;
+    public static String nameFieldName;
+    public static String surnameFieldName;
+    public static String dobFieldName;
+    public static String phoneFieldName;
+    public static String skillFieldName;
+    public static String createdFieldName;
+    public static String updatedFieldName;
 
     public int getId() {
         return id;
@@ -46,20 +55,20 @@ public class Student {
         this.dob = dob;
     }
 
-    public int getPhone() {
+    public long getPhone() {
         return phone;
     }
 
-    public void setPhone(int phone) {
+    public void setPhone(long phone) {
         this.phone = phone;
     }
 
-    public String getPrimarySkill() {
-        return primarySkill;
+    public String getSkill() {
+        return skill;
     }
 
-    public void setPrimarySkill(String primarySkill) {
-        this.primarySkill = primarySkill;
+    public void setSkill(String skill) {
+        this.skill = skill;
     }
 
     public Timestamp getCreated() {
@@ -78,15 +87,7 @@ public class Student {
         this.updated = updated;
     }
 
-    public Student(int id, String name, String surname, Date dob, int phone, String primarySkill, Timestamp created, Timestamp updated) {
-        this.id = id;
-        this.name = name;
-        this.surname = surname;
-        this.dob = dob;
-        this.phone = phone;
-        this.primarySkill = primarySkill;
-        this.created = created;
-        this.updated = updated;
+    public Student() {
     }
 
     @Override
@@ -97,9 +98,33 @@ public class Student {
                 ", surname='" + surname + '\'' +
                 ", dob=" + dob +
                 ", phone=" + phone +
-                ", primarySkill='" + primarySkill + '\'' +
+                ", skill='" + skill + '\'' +
                 ", created=" + created +
                 ", updated=" + updated +
                 '}';
+    }
+
+    public static void getFieldNameReflection ()  {
+        Field field = null;
+        try {
+            field = Student.class.getDeclaredField("id");
+            idFieldName = field.getName();
+            field = Student.class.getDeclaredField("name");
+            nameFieldName = field.getName();
+            field = Student.class.getDeclaredField("surname");
+            surnameFieldName = field.getName();
+            field = Student.class.getDeclaredField("dob");
+            dobFieldName = field.getName();
+            field = Student.class.getDeclaredField("phone");
+            phoneFieldName = field.getName();
+            field = Student.class.getDeclaredField("skill");
+            skillFieldName = field.getName();
+            field = Student.class.getDeclaredField("created");
+            createdFieldName = field.getName();
+            field = Student.class.getDeclaredField("updated");
+            updatedFieldName = field.getName();
+        } catch (NoSuchFieldException e) {
+            e.printStackTrace();
+        }
     }
 }

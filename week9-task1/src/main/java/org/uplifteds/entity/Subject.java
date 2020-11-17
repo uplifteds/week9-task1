@@ -1,12 +1,18 @@
 package org.uplifteds.entity;
 
+import java.lang.reflect.Field;
+
 public class Subject {
     private int id;
-    private String subjectName;
+    private String subject_name;
     private String tutor;
 
-    public String getSubjectName() {
-        return subjectName;
+    public static String idFieldName;
+    public static String subjectFieldName;
+    public static String tutorFieldName;
+
+    public String getSubject_name() {
+        return subject_name;
     }
 
     public int getId() {
@@ -17,8 +23,8 @@ public class Subject {
         this.id = id;
     }
 
-    public void setSubjectName(String subjectName) {
-        this.subjectName = subjectName;
+    public void setSubject_name(String subject_name) {
+        this.subject_name = subject_name;
     }
 
     public String getTutor() {
@@ -29,18 +35,29 @@ public class Subject {
         this.tutor = tutor;
     }
 
-    public Subject(int id, String subjectName, String tutor) {
-        this.id = id;
-        this.subjectName = subjectName;
-        this.tutor = tutor;
+    public Subject() {
     }
 
     @Override
     public String toString() {
         return "Subject{" +
                 "id=" + id +
-                ", subjectName='" + subjectName + '\'' +
+                ", subject_name='" + subject_name + '\'' +
                 ", tutor='" + tutor + '\'' +
                 '}';
+    }
+
+    public static void getFieldNameReflection()  {
+        Field field = null;
+        try {
+            field = Subject.class.getDeclaredField("id");
+            idFieldName = field.getName();
+            field = Subject.class.getDeclaredField("subject_name");
+            subjectFieldName = field.getName();
+            field = Subject.class.getDeclaredField("tutor");
+            tutorFieldName = field.getName();
+        } catch (NoSuchFieldException e) {
+            e.printStackTrace();
+        }
     }
 }

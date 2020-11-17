@@ -8,7 +8,7 @@ CREATE TABLE Students (
   name varchar(64) DEFAULT NULL,
   surname varchar(64) DEFAULT NULL,
   dob date,
-  phone int NOT NULL,
+  phone bigint NOT NULL,
   skill varchar(64) DEFAULT NULL,
   created TIMESTAMP,
   updated TIMESTAMP,
