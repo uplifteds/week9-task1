@@ -3,6 +3,7 @@ package org.uplifteds.entity;
 import java.lang.reflect.Field;
 import java.sql.Date;
 import java.sql.Timestamp;
+import java.time.LocalDate;
 
 public class Student {
     private int id;

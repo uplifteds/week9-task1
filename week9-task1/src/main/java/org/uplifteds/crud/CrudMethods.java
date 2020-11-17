@@ -42,7 +42,7 @@ public class CrudMethods {
                 prepStmt.setTimestamp(8, person.getUpdated());
                 prepStmt.addBatch(); //BATCH 'INSERT INTO'
             }
-            System.out.println("Writing students to Table ...");
+            System.out.println("Writing Students to its Table ...");
 
             int[] affectedRecords = prepStmt.executeBatch(); // required for BATCH 'INSERT INTO'
 
@@ -66,7 +66,7 @@ public class CrudMethods {
                 prepStmt.setString(3, subj.getTutor());
                 prepStmt.addBatch(); //BATCH 'INSERT INTO'
             }
-            System.out.println("Writing subjects to Table ...");
+            System.out.println("Writing Subjects to its Table ...");
 
             int[] affectedRecords = prepStmt.executeBatch(); // required for BATCH 'INSERT INTO'
 
@@ -92,7 +92,7 @@ public class CrudMethods {
                 prepStmt.setInt(4, examResTemp.getMark());
                 prepStmt.addBatch(); //BATCH 'INSERT INTO'
             }
-            System.out.println("Writing subjects to Table ...");
+            System.out.println("Writing Examresults to its Table ...\n");
 
             int[] affectedRecords = prepStmt.executeBatch(); // required for BATCH 'INSERT INTO'
 
@@ -101,23 +101,23 @@ public class CrudMethods {
         }
     }
 
-//    public static void doReadEntriesFromTable(Statement stmt) throws SQLException {
-//        String sql = "SELECT * FROM " + JabaORM.TABLE_NAME;
-//        ResultSet rs = stmt.executeQuery(sql);
-//        System.out.println("# Entries from Table were read: ");
-//        while(rs.next()) {
-//            // Retrieve by column name
-//            int id = rs.getInt(Student.idFieldName);
-//            String name = rs.getString(Student.nameFieldName);
-//            int salaryPerYearGrossInUSD = rs.getInt(Student.salaryFieldName);
-//
-//            Student emp = new Student(id, name, salaryPerYearGrossInUSD);
-//            // Display values
-//            System.out.println(emp.toString());
-//        }
-//        System.out.println();
-//        rs.close();
-//    }
+    public static void doReadEntriesFromTable(Statement stmt, String table_name) throws SQLException {
+        String sql = "SELECT * FROM " + table_name;
+        ResultSet resultSet = stmt.executeQuery(sql);
+        ResultSetMetaData rsmd = resultSet.getMetaData();
+        int columnsNumber = rsmd.getColumnCount();
+        System.out.println("# Entries were read from table: " + table_name);
+        while (resultSet.next()) {
+            for (int i = 1; i <= columnsNumber; i++) {
+                if (i > 1) System.out.print(",  ");
+                String columnValue = resultSet.getString(i);
+                System.out.print(columnValue + " " + rsmd.getColumnName(i));
+            }
+            System.out.println();
+        }
+        resultSet.close();
+        System.out.println();
+    }
 
     public static void doDropLinkedTableIfExists(Statement stmt, String table_name) throws SQLException {
 //        for (int i = 0; i< CDPDatabaseLauncher.listOfTables.size(); i++){
@@ -127,12 +127,12 @@ public class CrudMethods {
         System.out.println("Existing Table was DROPPED: " + table_name);
     }
 
-    public static void doDeleteValuesInTableIfExists(Statement stmt) throws SQLException {
+    public static void doDeleteValuesInAllTables(Statement stmt) throws SQLException {
         for (int i = 0; i< CDPDatabaseLauncher.listOfTables.size(); i++) {
             String tableToClear = "DELETE FROM " + CDPDatabaseLauncher.listOfTables.get(i);
             stmt.executeUpdate(tableToClear);
         }
-        System.out.println("Values were deleted in all tables ");
+        System.out.println("Previous values were deleted in all tables ");
     }
 
 //    public static int getSalaryFromTableById(Statement stmt, int id) throws SQLException {

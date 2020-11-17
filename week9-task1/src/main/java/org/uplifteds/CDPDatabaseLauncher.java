@@ -4,10 +4,9 @@ import org.uplifteds.crud.CrudMethods;
 import org.uplifteds.entity.ExamResult;
 import org.uplifteds.entity.Student;
 import org.uplifteds.entity.Subject;
-import org.uplifteds.entitygenerator.EntityGenerator;
-
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
+import org.uplifteds.entitygenerator.ExamResultGenerator;
+import org.uplifteds.entitygenerator.StudentGenerator;
+import org.uplifteds.entitygenerator.SubjectGenerator;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -19,35 +18,55 @@ public class CDPDatabaseLauncher {
     public static List<String> listOfTables = new ArrayList<>();
     public static void main( String[] args ) throws SQLException {
         String postgresURL = "jdbc:postgresql://127.0.0.1:5432/postgres"; // localhost for Dev-env
-        String user = "javauser"; //non-root user. Granted All permissions on table
+        String user = "javauser"; //non-root user. Granted All permissions on DB
         String password = "plaintextshouldbeencrypted"; // in Prod-env should be stored in Encrypted Secret-Vault
 
         listOfTables.add("ExamResults"); // has foreign key, therefore added 1st
         listOfTables.add("subjects");
         listOfTables.add("students");
         Student.getFieldNameReflection();
-        List<Student> listOfStud = EntityGenerator.setListOfStudents();
+        List<Student> listOfStud = StudentGenerator.setListOfStudents();
         Subject.getFieldNameReflection();
-        List<Subject> listOfSubj = EntityGenerator.setListOfSubjects();
-
+        List<Subject> listOfSubj = SubjectGenerator.setListOfSubjects();
         ExamResult.getFieldNameReflection();
-        List<ExamResult> listOfExamRes = EntityGenerator.setListOfExamResults();
+        List<ExamResult> listOfExamRes = ExamResultGenerator.setListOfExamResults();
 
         try (Connection conn = DriverManager.getConnection(postgresURL, user, password);
              Statement stmt = conn.createStatement()) {
 
-
             // crud insert (student, subject), read, update
+            CrudMethods.doDeleteValuesInAllTables(stmt); // clean values before inserting
 
+            CrudMethods.doInsertListOfSubjects   (conn,  listOfTables.get(1), listOfSubj);
+            CrudMethods.doInsertListOfStudents   (conn,  listOfTables.get(2), listOfStud);
+            CrudMethods.doInsertListOfExamResults(conn,  listOfTables.get(0), listOfExamRes); // has foreign key, therefore filled last
 
-            CrudMethods.doDeleteValuesInTableIfExists(stmt);
-            CrudMethods.doInsertListOfStudents(conn,  listOfTables.get(2), listOfStud);
-            CrudMethods.doInsertListOfSubjects(conn,  listOfTables.get(1), listOfSubj);
-            CrudMethods.doInsertListOfExamResults(conn,  listOfTables.get(0), listOfExamRes);
+//            CrudMethods.doReadEntriesFromTable(stmt, listOfTables.get(2));
+            CrudMethods.doReadEntriesFromTable(stmt, listOfTables.get(0));
+
+//my subtask1: test Joins [success]:
+//SELECT students.*
+//FROM ExamResults
+//INNER JOIN students ON ExamResults.student_id = students.id
+
+    // SELECT           subjects.*
+    //FROM             students
+    //RIGHT OUTER JOIN examresults ON students.id = examresults.student_id
+    //RIGHT OUTER JOIN subjects ON examresults.subject_id = subjects.id
+
+// my subtask2: create 1st index
 
             // 100K of users
-            //randStop. 1K of subjects
-            //c. 1 million of marks
+            // 1K of subjects
+            // 1 million of marks (if 1M marks / 1K subject = then 1K students , not 100K)
+
+            // 700 student took 70 sec
+
+            //Test queries:
+            //a. Find user by name (exact match)
+            //randStop. Find user by surname (partial match)
+            //c. Find user by phone number (partial match)
+            //d. Find user with marks by user surname (partial match)
 
             //add appropriate constraints (primary keys, foreign keys, indexes, etc)
 
@@ -69,11 +88,7 @@ public class CDPDatabaseLauncher {
 
             //Index investigation document
 
-            //Test queries:
-            //a. Find user by name (exact match)
-            //randStop. Find user by surname (partial match)
-            //c. Find user by phone number (partial match)
-            //d. Find user with marks by user surname (partial match)
+
         }
     }
 }
