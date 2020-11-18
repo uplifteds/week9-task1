@@ -7,7 +7,7 @@ import org.junit.Test;
 /**
  * Unit test for simple App.
  */
-public class CDPDatabaseLauncherTest
+public class CDPDBLauncherTest
 {
     /**
      * Rigorous Test :-)

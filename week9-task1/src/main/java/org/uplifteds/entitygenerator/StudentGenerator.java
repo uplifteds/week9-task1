@@ -9,7 +9,10 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 public class StudentGenerator {
-    public static final int NUMBER_OF_STUDENTS = 697;
+    // 1K of subjects
+    // 1 million of marks (if 1M marks / 1K subject = then 1K students , not 100K)
+    public static final int NUMBER_OF_STUDENTS = 497;
+
     public static final int GLOBAL_FIRST_ID = 1;
     public static int maxNameLength = 4;
     public static int skillNameLength = 6;
@@ -18,7 +21,6 @@ public class StudentGenerator {
     private static List<String> nameList;
     private static List<String> surnameList;
 
-
     public static List<Student> setListOfStudents(){
         listOfStudents = new CopyOnWriteArrayList<>();
 
@@ -26,7 +28,7 @@ public class StudentGenerator {
         surnameList = fillStudSurnameInList();
         skillList = fillStudSkillInList();
 
-        long phone = 7010000000l;
+        long phone = 7010000000L;
 
         for (int i = GLOBAL_FIRST_ID; (i - GLOBAL_FIRST_ID) < nameList.size(); i++){
             Student studentTemp = new Student();

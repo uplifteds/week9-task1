@@ -7,9 +7,11 @@ import java.util.concurrent.ThreadLocalRandom;
 
 public class RandomType {
     public static LocalDate generateRandomDate() {
-        int hundredYears = 100 * 365;
+        final int DAYS_IN_YEAR = 365;
+        final int HUNDRED = 100;
+        int periodOfYears = HUNDRED * DAYS_IN_YEAR;
         return LocalDate.ofEpochDay(ThreadLocalRandom
-                .current().nextInt(-hundredYears, hundredYears));
+                .current().nextInt(-periodOfYears, periodOfYears));
     }
 
     public static Instant generateRandomTimestamp() {

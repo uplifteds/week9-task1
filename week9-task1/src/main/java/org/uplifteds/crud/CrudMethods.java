@@ -1,12 +1,13 @@
 package org.uplifteds.crud;
 
-import org.uplifteds.CDPDatabaseLauncher;
+import org.uplifteds.CDPDBLauncher;
 import org.uplifteds.entity.ExamResult;
 import org.uplifteds.entity.Student;
 import org.uplifteds.entity.Subject;
 
 import java.sql.*;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class CrudMethods {
 //    public static void doCreateTable(Statement stmt) throws SQLException {
@@ -104,6 +105,7 @@ public class CrudMethods {
     public static void doReadEntriesFromTable(Statement stmt, String table_name) throws SQLException {
         String sql = "SELECT * FROM " + table_name;
         ResultSet resultSet = stmt.executeQuery(sql);
+
         ResultSetMetaData rsmd = resultSet.getMetaData();
         int columnsNumber = rsmd.getColumnCount();
         System.out.println("# Entries were read from table: " + table_name);
@@ -119,31 +121,96 @@ public class CrudMethods {
         System.out.println();
     }
 
-    public static void doDropLinkedTableIfExists(Statement stmt, String table_name) throws SQLException {
-//        for (int i = 0; i< CDPDatabaseLauncher.listOfTables.size(); i++){
-        String delTable = "DROP TABLE IF EXISTS " + table_name;
-        stmt.executeUpdate(delTable);
-//        }
-        System.out.println("Existing Table was DROPPED: " + table_name);
-    }
+//    public static void doDropLinkedTableIfExists(Statement stmt, String table_name) throws SQLException {
+////        for (int i = 0; i< CDPDatabaseLauncher.listOfTables.size(); i++){
+//        String delTable = "DROP TABLE IF EXISTS " + table_name;
+//        stmt.executeUpdate(delTable);
+////        }
+//        System.out.println("Existing Table was DROPPED: " + table_name);
+//    }
 
     public static void doDeleteValuesInAllTables(Statement stmt) throws SQLException {
-        for (int i = 0; i< CDPDatabaseLauncher.listOfTables.size(); i++) {
-            String tableToClear = "DELETE FROM " + CDPDatabaseLauncher.listOfTables.get(i);
+        for (int i = 0; i< CDPDBLauncher.listOfTables.size(); i++) {
+            String tableToClear = "DELETE FROM " + CDPDBLauncher.listOfTables.get(i);
             stmt.executeUpdate(tableToClear);
         }
         System.out.println("Previous values were deleted in all tables ");
     }
 
-//    public static int getSalaryFromTableById(Statement stmt, int id) throws SQLException {
-//        ResultSet rs = stmt
-//                .executeQuery("select * from " + JabaORM.TABLE_NAME + " where id='" + id + "'");
-//        int salaryPerYearGrossInUSD = 0;
-//        while (rs.next()) {
-//            salaryPerYearGrossInUSD = rs.getInt(Student.salaryFieldName);
-//        }
-//        rs.close();
-//        stmt.close();
-//        return (salaryPerYearGrossInUSD);
-//    }
+    public static Student getStudentBySurnamePartial(Statement stmt, String surname) throws SQLException {
+        // case-insensitive partial search
+        ResultSet resultSet = stmt.executeQuery(
+                "select * from " + CDPDBLauncher.listOfTables.get(2) +
+                    " where LOWER(" + Student.surnameFieldName + ") LIKE LOWER('%" + surname + "%')");
+
+        Student stud = findStudentInResultSet(resultSet);
+        return stud;
+    }
+
+    public static Student getStudentByNameExact(Statement stmt, String name) throws SQLException {
+        // case-sensitive exact search
+        ResultSet resultSet = stmt.executeQuery(
+                "select * from " + CDPDBLauncher.listOfTables.get(2) +
+                    " where " + Student.nameFieldName + " = '" + name + "'");
+
+        Student stud = findStudentInResultSet(resultSet);
+        return stud;
+    }
+
+    public static Student getStudentByPhonePartial(Statement stmt, String phone) throws SQLException {
+        // case-insensitive partial search
+        ResultSet resultSet = stmt.executeQuery(
+                "select * from " + CDPDBLauncher.listOfTables.get(2) +
+                        " where " + Student.phoneFieldName + "::text LIKE '%" + phone + "%'"); // sql cast bigint to string
+
+        Student stud = findStudentInResultSet(resultSet);
+        return stud;
+    }
+
+    public static Student getStudentWithMarkBySurnamePartial(Statement stmt, String surname) throws SQLException {
+        // case-insensitive partial search
+        ResultSet resultSet = stmt.executeQuery(
+        "select " + CDPDBLauncher.listOfTables.get(2) + ".* " +
+                "from " + CDPDBLauncher.listOfTables.get(2) +
+            " INNER JOIN " + CDPDBLauncher.listOfTables.get(0) + " ON " + CDPDBLauncher.listOfTables.get(2) + "." +
+                Student.idFieldName + " = " + CDPDBLauncher.listOfTables.get(0) + "." + ExamResult.student_idFieldName +
+            " where LOWER(" + Student.surnameFieldName + ") LIKE LOWER('%" + surname + "%') " +
+                "and " + CDPDBLauncher.listOfTables.get(0) + "." + ExamResult.markFieldName + " > 0" +
+                " LIMIT 1");
+
+        //SELECT Students.*
+        //FROM students
+        //INNER JOIN ExamResults ON students.id = ExamResults.student_id
+        //where LOWER(students.surname) like LOWER('%bloch%') and ExamResults.mark > 0
+        //LIMIT 1
+
+        Student stud = findStudentInResultSet(resultSet);
+        return stud;
+    }
+
+    private static Student findStudentInResultSet(ResultSet resultSet) throws SQLException {
+        ResultSetMetaData rsmd = resultSet.getMetaData();
+        int columnsNumber = rsmd.getColumnCount();
+        System.out.println("\n# Searching ... ");
+        List<String> l = new CopyOnWriteArrayList<>();
+        Student stud = new Student();
+        while (resultSet.next()) {
+            for (int i = 1; i <= columnsNumber; i++) {
+                String columnValue = resultSet.getString(i);
+                l.add(columnValue);
+            }
+            stud.setId(Integer.parseInt(l.get(0)));
+            stud.setName(l.get(1));
+            stud.setSurname(l.get(2));
+            stud.setDob(Date.valueOf(l.get(3)));
+            stud.setPhone(Long.parseLong(l.get(4)));
+            stud.setSkill(l.get(5));
+            stud.setCreated(Timestamp.valueOf(l.get(6)));
+            stud.setUpdated(Timestamp.valueOf(l.get(7)));
+        }
+        resultSet.close();
+
+        System.out.println("# Found: " + stud.toString());
+        return stud;
+    }
 }
