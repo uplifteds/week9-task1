@@ -1,6 +1,7 @@
 package org.uplifteds;
 
-import org.uplifteds.crud.CrudMethods;
+import org.uplifteds.crud.CRUDSelectMethods;
+import org.uplifteds.crud.ExplainMethods;
 import org.uplifteds.entity.ExamResult;
 import org.uplifteds.entity.Student;
 import org.uplifteds.entity.Subject;
@@ -37,57 +38,39 @@ public class CDPDBLauncher {
             // crud insert (student, subject), read, update
 //            CrudMethods.doDeleteValuesInAllTables(stmt); // clean values before inserting
 
-            long startInsert = System.currentTimeMillis();
 //            CrudMethods.doInsertListOfSubjects   (conn,  listOfTables.get(1), listOfSubj);
 //            CrudMethods.doInsertListOfStudents   (conn,  listOfTables.get(2), listOfStud);
 //            CrudMethods.doInsertListOfExamResults(conn,  listOfTables.get(0), listOfExamRes); // has foreign key, therefore filled last
-            long stopInsert = System.currentTimeMillis();
-            long diffInsert = (stopInsert - startInsert);
 
-            long startRead = System.currentTimeMillis();
 //            CrudMethods.doReadEntriesFromTable(stmt, listOfTables.get(2));
 //            CrudMethods.doReadEntriesFromTable(stmt, listOfTables.get(0));
-            long stopRead = System.currentTimeMillis();
-            long diffRead = (stopRead - startRead);
 
-//            System.out.println("Inserting " + StudentGenerator.NUMBER_OF_STUDENTS +
-//                    " students, subjects into Tables took (millisec): " + diffInsert);
 
-//            System.out.println("Reading entries from: " + listOfTables.get(0) +
-//                    " table took (millisec): " + diffRead);
+            Student stud2 = CRUDSelectMethods.getStudentByNameExact(stmt,"John");
+            ExplainMethods.doExplainAnalyzeSearchQuery(stmt);
+// 1000 row exact search around 11 MILLISEC; with B-tree, and GIN (pg_trgm), hash indexes same time
+//create index hash_idx_name on students using hash(name);
 
-            long startSearchExact = System.nanoTime();
-            Student stud2 = CrudMethods.getStudentByNameExact(stmt,"John");
-            long stopSearchExact = System.nanoTime();
-            long diffSearchExact = (stopSearchExact - startSearchExact) / NANO_TO_MICROSEC_DIVIDER;
-            System.out.println("Exact-Searching Student in: " + listOfTables.get(2) + " table took (microsec): " +
-                    diffSearchExact);
-            // = search around 900 microsec; with B-tree, and GIN (pg_trgm) indexes same time
+            String searchSurname = "XTUAKNPS";
+            Student stud = CRUDSelectMethods.getStudentBySurnamePartial(stmt,searchSurname);
+            ExplainMethods.doExplainAnalyzeSearchQuery(stmt);
+// 1000 row LIKE search around 1 millisec with B-tree, and GIN (pg_trgm) index same; hash
 
-            long startSearch = System.nanoTime();
-            Student stud = CrudMethods.getStudentBySurnamePartial(stmt,"shipilev");
-            long stopSearch = System.nanoTime();
-            long diffSearch = (stopSearch - startSearch) / NANO_TO_MICROSEC_DIVIDER;
-            System.out.println("Partial-Searching Student in: " + listOfTables.get(2) + " table took (microsec): " +
-                    diffSearch);
-            // LIKE search around 11 millisec; with B-tree, and GIN (pg_trgm) index same
+            Student stud3 = CRUDSelectMethods.getStudentByPhonePartial(stmt, "8010000499");
+            ExplainMethods.doExplainAnalyzeSearchQuery(stmt);
+// 1000 row LIKE search around 1 millisec with B-tree, ; hash
 
-            long startSearchPart = System.nanoTime();
-            Student stud3 = CrudMethods.getStudentByPhonePartial(stmt, "010000499");
-            long stopSearchPart = System.nanoTime();
-            long diffSearchPart = (stopSearchPart - startSearchPart) / NANO_TO_MICROSEC_DIVIDER;
-            System.out.println("Partial-Searching Student in: " + listOfTables.get(2) + " table took (microsec): " +
-                    diffSearchPart);
+            Student stud4 = CRUDSelectMethods.getStudentWithMarkBySurnamePartial(stmt, searchSurname);
+            ExplainMethods.doExplainAnalyzeSearchQuery(stmt);
+// 1000 row LIKE search around 3 millisec with B-tree, ; hash
 
-            long startSearchPartJoin = System.nanoTime();
-            Student stud4 = CrudMethods.getStudentWithMarkBySurnamePartial(stmt, "bloch");
-            long stopSearchPartJoin = System.nanoTime();
-            long diffSearchPartJoin = (stopSearchPartJoin - startSearchPartJoin) / 1000;
-            System.out.println("Partial-Searching Student in: " + listOfTables.get(2) + " table with join to " + listOfTables.get(0) + " table took (microsec): " +
-                    diffSearchPartJoin);
-
+            ExamResult er = CRUDSelectMethods.getExamResultByMark(stmt, "20958");
+            ExplainMethods.doExplainAnalyzeSearchQuery(stmt);
+// 1Mln rows EXACT-search around 28 millisec; with B-tree 11 millis , and HASH index: 1 millisec
+// 1Mln rows like-search around 42 millisec; with B-tree 42 same millis , HASH index: 33 millisec
 
             //psql : CREATE EXTENSION pg_trgm;
+            //CREATE INDEX trgm_idx_mark ON examresults USING gin (mark gin_trgm_ops);
 
             // 1000 student took 4 min without
 
@@ -103,8 +86,7 @@ public class CDPDBLauncher {
             // Try to set index before inserting test data and after.
             // What was the time? Test data: 1K of users, subject, 1M of marks
 
-            //add appropriate constraints (primary keys, foreign keys, indexes, etc)
-
+// ============================================================================================================
             //Add trigger that will update column updated_datetime to current date in case of updating any of student. (1 point)
 
             //Add validation on DB level that will check username on special characters (reject student name with next characters '@', '#', '$') (1 point)
@@ -122,8 +104,6 @@ public class CDPDBLauncher {
             //Extra point 2 (1 point). Implement immutable data trigger. Create new table student_address. Add several rows with test data and do not give acces to update any information inside it. Hint: you can create trigger that will reject any update operation for target table, but save new row with updated (merged with original) data into separate table
 
             //Index investigation document
-
-
         }
     }
 }

@@ -11,7 +11,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public class StudentGenerator {
     // 1K of subjects
     // 1 million of marks (if 1M marks / 1K subject = then 1K students , not 100K)
-    public static final int NUMBER_OF_STUDENTS = 497;
+    public static final int EXTRA_NUMBER_OF_STUDENTS = 997; // total would be 1000
 
     public static final int GLOBAL_FIRST_ID = 1;
     public static int maxNameLength = 4;
@@ -59,7 +59,7 @@ public class StudentGenerator {
         studentNameList.add("Joshua");
         studentNameList.add("Alexey");
 
-        for (int i = 1; i < NUMBER_OF_STUDENTS; i++){
+        for (int i = 1; i < EXTRA_NUMBER_OF_STUDENTS; i++){
             studentNameList.add(RandomType.generateRandomString(maxNameLength));
         }
         return studentNameList;
@@ -72,7 +72,7 @@ public class StudentGenerator {
         studSurnameList.add("Bloch");
         studSurnameList.add("Shipilev");
 
-        for (int i = 1; i < NUMBER_OF_STUDENTS; i++){
+        for (int i = 1; i < EXTRA_NUMBER_OF_STUDENTS; i++){
             studSurnameList.add(RandomType.generateRandomString(8));
         }
         return studSurnameList;
@@ -85,7 +85,7 @@ public class StudentGenerator {
         studSkillList.add("Math");
         studSkillList.add("Computer Science");
 
-        for (int i = 1; i < NUMBER_OF_STUDENTS; i++){
+        for (int i = 1; i < EXTRA_NUMBER_OF_STUDENTS; i++){
             studSkillList.add(RandomType.generateRandomString(skillNameLength));
         }
 

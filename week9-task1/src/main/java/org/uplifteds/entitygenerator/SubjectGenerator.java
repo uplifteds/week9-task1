@@ -36,7 +36,7 @@ public class SubjectGenerator {
         tutorList.add("Prof. Knut");
         tutorList.add("Prof. Tannenbaum");
 
-        for (int i = 1; i < StudentGenerator.NUMBER_OF_STUDENTS; i++){
+        for (int i = 1; i < StudentGenerator.EXTRA_NUMBER_OF_STUDENTS; i++){
             tutorList.add(RandomType.generateRandomString(tutorNameLength));
         }
 
