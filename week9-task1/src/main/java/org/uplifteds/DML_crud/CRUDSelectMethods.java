@@ -1,6 +1,7 @@
-package org.uplifteds.crud;
+package org.uplifteds.DML_crud;
 
 import org.uplifteds.CDPDBLauncher;
+import org.uplifteds.DDL.CloneTableDropColumns;
 import org.uplifteds.entity.ExamResult;
 import org.uplifteds.entity.Student;
 
@@ -69,6 +70,17 @@ public class CRUDSelectMethods {
         return stud;
     }
 
+    public static Student getStudentByIdExact(Statement stmt, int id) throws SQLException {
+        // case-sensitive exact search
+        String sql = "select * from " + CDPDBLauncher.listOfTables.get(2) +
+                " where " + Student.idFieldName + " = '" + id + "'";
+        ResultSet resultSet = stmt.executeQuery(sql);
+
+        System.out.println("Updated timestamp should be Now");
+        Student stud = findStudentInResultSet(resultSet);
+        return stud;
+    }
+
     public static ExamResult getExamResultByMark(Statement stmt, String mark) throws SQLException {
         // case-insensitive partial search
         String sql = "SELECT * " +
@@ -78,6 +90,36 @@ public class CRUDSelectMethods {
 
         setExplainAnalyzeSQLQuery(sql);
         ExamResult er = findExamResInResultSet(resultSet);
+        return er;
+    }
+
+    public static void doFoundCondition(int id, String s) {
+        if (id > 0) {
+            System.out.println("# Found: " + s);
+        } else {
+            System.out.println("...nothing is found");
+        }
+    }
+
+    private static ExamResult findExamResInResultSet(ResultSet resultSet) throws SQLException {
+        ResultSetMetaData rsmd = resultSet.getMetaData();
+        int columnsNumber = rsmd.getColumnCount();
+        System.out.println("\n# Searching ... ");
+        List<Integer> l = new CopyOnWriteArrayList<>();
+        ExamResult er = new ExamResult();
+        while (resultSet.next()) {
+            for (int i = 1; i <= columnsNumber; i++) {
+                Integer columnValue = resultSet.getInt(i);
+                l.add(columnValue);
+            }
+            er.setId(l.get(0));
+            er.setStudent_id(l.get(1));
+            er.setSubject_id(l.get(2));
+            er.setMark(l.get(3));
+        }
+        doFoundCondition(er.getId(), er.toString());
+        resultSet.close();
+
         return er;
     }
 
@@ -102,38 +144,11 @@ public class CRUDSelectMethods {
             stud.setUpdated(Timestamp.valueOf(l.get(7)));
         }
         resultSet.close();
-        if (stud.getId() > 0){
-            System.out.println("# Found: " + stud.toString());
-        } else {
-            System.out.println("...nothing is found");
-        }
-
+        doFoundCondition(stud.getId(), stud.toString());
         return stud;
     }
 
-    private static ExamResult findExamResInResultSet(ResultSet resultSet) throws SQLException {
-        ResultSetMetaData rsmd = resultSet.getMetaData();
-        int columnsNumber = rsmd.getColumnCount();
-        System.out.println("\n# Searching ... ");
-        List<Integer> l = new CopyOnWriteArrayList<>();
-        ExamResult er = new ExamResult();
-        while (resultSet.next()) {
-            for (int i = 1; i <= columnsNumber; i++) {
-                Integer columnValue = resultSet.getInt(i);
-                l.add(columnValue);
-            }
-            er.setId(l.get(0));
-            er.setStudent_id(l.get(1));
-            er.setSubject_id(l.get(2));
-            er.setMark(l.get(3));
-        }
-        resultSet.close();
-
-        System.out.println("# Found: " + er.toString());
-        return er;
-    }
-
     private static void setExplainAnalyzeSQLQuery(String sql) {
-        ExplainMethods.explainSQLQuery = "explain analyze " + sql;
+        ExplainAnalyzeSelectMethods.explainSQLQuery = "explain analyze " + sql;
     }
 }

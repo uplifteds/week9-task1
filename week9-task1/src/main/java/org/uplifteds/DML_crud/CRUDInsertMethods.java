@@ -1,4 +1,4 @@
-package org.uplifteds.crud;
+package org.uplifteds.DML_crud;
 
 import org.uplifteds.entity.ExamResult;
 import org.uplifteds.entity.Student;

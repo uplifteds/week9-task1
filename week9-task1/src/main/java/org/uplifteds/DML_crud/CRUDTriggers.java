@@ -1,4 +1,4 @@
-package org.uplifteds.crud;
+package org.uplifteds.DML_crud;
 
 import java.sql.*;
 
@@ -7,7 +7,7 @@ public class CRUDTriggers {
     static String triggerFuncName = name +"()";
     static String triggerName = "launch" + name;
 
-    public static void createTriggerFuncUpdateUpdatedColumnWithId(Connection conn) throws SQLException {
+    public static void createFuncUpdateUpdatedColumnWithIdPassedFromTrigger(Connection conn) throws SQLException {
         String sqlStoredFunc = "create or replace FUNCTION " + triggerFuncName + " returns trigger as $$\n" +
                 "DECLARE\n" +
                 "    arg INTEGER;\n" +
@@ -25,7 +25,7 @@ public class CRUDTriggers {
         execPrepStmt(conn, sqlStoredFunc);
     }
 
-    public static void createSQLTriggerExecFuncId(Connection conn, int id) throws SQLException {
+    public static void createTriggerOnStudentsUpdateAndPassIdToFuncUpdate(Connection conn, int id) throws SQLException {
         String sqlStoredProc = "CREATE TRIGGER " + triggerName + "\n" +
                 "AFTER UPDATE of name,surname,skill,phone,dob,created ON students\n" +
                 "FOR EACH ROW\n" +

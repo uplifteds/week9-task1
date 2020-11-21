@@ -1,10 +1,10 @@
-package org.uplifteds.crud;
+package org.uplifteds.DML_crud;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-public class ExplainMethods {
+public class ExplainAnalyzeSelectMethods {
     static String explainSQLQuery;
 
     public static void doExplainAnalyzeSearchQuery(Statement stmt) throws SQLException {

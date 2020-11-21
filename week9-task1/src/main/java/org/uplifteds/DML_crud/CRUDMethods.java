@@ -1,10 +1,7 @@
-package org.uplifteds.crud;
+package org.uplifteds.DML_crud;
 
 import org.uplifteds.CDPDBLauncher;
-import org.uplifteds.entity.Student;
 
-import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.sql.*;
 
 public class CRUDMethods {
@@ -35,17 +32,17 @@ public class CRUDMethods {
         System.out.println();
     }
 
-    public static void doUpdateFieldOfStudentById(Connection conn, String fieldName ,Long fieldValue, int id) throws SQLException {
+    public static void doUpdateFieldOfStudentById(Connection conn, String fieldName ,Object fieldValue, int id) throws SQLException {
         String sqlUpdateQuery = "UPDATE students SET " + fieldName + "=? WHERE id=?";
         PreparedStatement preparedStatement = null;
         try {
             preparedStatement = conn.prepareStatement(sqlUpdateQuery);
-            preparedStatement.setLong(1, fieldValue);
+            preparedStatement.setObject(1, fieldValue);
             preparedStatement.setInt(2, id);
 
             int row = preparedStatement.executeUpdate();
 
-            System.out.println("Student's fieldValue was updated");
+            System.out.println("Student's fieldValue was updated. Trigger would be fired.");
 
         } finally {
             preparedStatement.close();
