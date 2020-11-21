@@ -15,8 +15,8 @@ public class ExamResultGenerator {
         int index = StudentGenerator.GLOBAL_FIRST_ID; // may be any positive Integer
         int studentCounter = -1; // ensure that first ExamResult_Id will start from same Id as Students' first Id
         int k;
-        int randomRangeStart = 10;
-        int randRangeEnd = 10000;
+        int randomRangeStart = 1;
+        int randRangeEnd = 1000_000;
 
         for (int i = index; i <= StudentGenerator.listOfStudents.size(); i++){
             for (int j = index; j <= SubjectGenerator.listOfSubjects.size(); j++) {
@@ -28,7 +28,7 @@ public class ExamResultGenerator {
                 examResultTemp.setSubject_id(SubjectGenerator.listOfSubjects.get(j - 1).getId());
 
                 Random r = new Random();
-                examResultTemp.setMark(r.ints(1, (1000_000 + 1)).limit(1).findFirst().getAsInt());
+                examResultTemp.setMark(r.ints(randomRangeStart, (randRangeEnd)).limit(1).findFirst().getAsInt());
 
                 listOfExamResults.add(examResultTemp);
             }

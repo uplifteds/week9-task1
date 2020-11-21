@@ -1,12 +1,12 @@
 package org.uplifteds;
 
-import org.uplifteds.crud.CRUDMethods;
-import org.uplifteds.crud.CRUDSelectMethods;
-import org.uplifteds.crud.CRUDTriggers;
-import org.uplifteds.crud.ExplainMethods;
+import org.uplifteds.crud.*;
 import org.uplifteds.entity.ExamResult;
 import org.uplifteds.entity.Student;
 import org.uplifteds.entity.Subject;
+import org.uplifteds.entitygenerator.ExamResultGenerator;
+import org.uplifteds.entitygenerator.StudentGenerator;
+import org.uplifteds.entitygenerator.SubjectGenerator;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -21,7 +21,6 @@ public class CDPDBLauncher {
         String postgresURL = "jdbc:postgresql://127.0.0.1:5432/postgres"; // localhost for Dev-env
         String user = "javauser"; //non-root user. Granted All permissions on DB
         String password = "plaintextshouldbeencrypted"; // in Prod-env should be stored in Encrypted Secret-Vault
-        final int NANO_TO_MICROSEC_DIVIDER = 1_000;
 
         listOfTables.add("ExamResults"); // has foreign key, therefore added 1st
         listOfTables.add("Subjects");
@@ -30,19 +29,22 @@ public class CDPDBLauncher {
         Subject.getFieldNameReflection();
         ExamResult.getFieldNameReflection();
 
-//        List<Student> listOfStud = StudentGenerator.setListOfStudents();
-//        List<Subject> listOfSubj = SubjectGenerator.setListOfSubjects();
-//        List<ExamResult> listOfExamRes = ExamResultGenerator.setListOfExamResults();
+        List<Student> listOfStud = StudentGenerator.setListOfStudents();
+        List<Subject> listOfSubj = SubjectGenerator.setListOfSubjects();
+        List<ExamResult> listOfExamRes = ExamResultGenerator.setListOfExamResults();
+//generating 1000 students and 10 mln marks takes 4 min
 
         try (Connection conn = DriverManager.getConnection(postgresURL, user, password);
              Statement stmt = conn.createStatement()) {
+            //Database table/constraint creation – separate file
+            // Check create3tables.sql
 
             // crud insert (student, subject), read, update
 //            CrudMethods.doDeleteValuesInAllTables(stmt); // clean values before inserting
 
-//            CrudMethods.doInsertListOfSubjects   (conn,  listOfTables.get(1), listOfSubj);
-//            CrudMethods.doInsertListOfStudents   (conn,  listOfTables.get(2), listOfStud);
-//            CrudMethods.doInsertListOfExamResults(conn,  listOfTables.get(0), listOfExamRes); // has foreign key, therefore filled last
+            CRUDInsertMethods.doInsertListOfSubjects   (conn,  listOfTables.get(1), listOfSubj);
+            CRUDInsertMethods.doInsertListOfStudents   (conn,  listOfTables.get(2), listOfStud);
+            CRUDInsertMethods.doInsertListOfExamResults(conn,  listOfTables.get(0), listOfExamRes); // has foreign key, therefore filled last
 
 //            CrudMethods.doReadEntriesFromTable(stmt, listOfTables.get(2));
 //            CrudMethods.doReadEntriesFromTable(stmt, listOfTables.get(0));
@@ -55,7 +57,7 @@ public class CDPDBLauncher {
             Student stud = CRUDSelectMethods.getStudentBySurnamePartial(stmt,searchSurname);
             ExplainMethods.doExplainAnalyzeSearchQuery(stmt);
 
-            Student stud3 = CRUDSelectMethods.getStudentByPhonePartial(stmt, "8010000499");
+            Student stud3 = CRUDSelectMethods.getStudentByPhonePartial(stmt, "7010000499");
             ExplainMethods.doExplainAnalyzeSearchQuery(stmt);
 
             Student stud4 = CRUDSelectMethods.getStudentWithMarkBySurnamePartial(stmt, searchSurname);
@@ -67,14 +69,20 @@ public class CDPDBLauncher {
             //Add trigger that will update column updated_datetime to current date in case of updating any of student. (1 point)
             CRUDTriggers.createTriggerFuncUpdateUpdatedColumnWithId(conn);
             CRUDTriggers.dropSQLTriggerExecFunc(conn);
-            int updateId = 1;
-            CRUDTriggers.createSQLTriggerExecFuncId(conn, updateId);
-            CRUDMethods.doUpdateFieldOfStudentById(conn, Student.phoneFieldName ,1190000001L, updateId);
+            int studentIdToUpdate = 1;
+            CRUDTriggers.createSQLTriggerExecFuncId(conn, studentIdToUpdate);
+            CRUDMethods.doUpdateFieldOfStudentById(conn, Student.phoneFieldName ,1190000001L, studentIdToUpdate);
 
-            // ============================================================================================================
+            //Please, add your changes to GIT task by task
+            // check github.com/uplifteds/week9-task1
+
+            //DB design in suitable format
+            // check ER diagram.png
 
             //Add validation on DB level that will check username on special characters (reject student name with next characters '@', '#', '$') (1 point)
-
+//CHECK (name not SIMILAR TO '%(@|#|$)%') => constraint added to Students table, name, surname fields. Check create3tables.sql
+            // ============================================================================================================
+            
             //Create snapshot that will contain next data: student name, student surname, subject name, mark (snapshot means that in case of changing some data in source table – your snapshot should not change) (1 point)
 
             // Create function that will return average mark for input user (1 point)
@@ -87,7 +95,8 @@ public class CDPDBLauncher {
 
             //Extra point 2 (1 point). Implement immutable data trigger. Create new table student_address. Add several rows with test data and do not give acces to update any information inside it. Hint: you can create trigger that will reject any update operation for target table, but save new row with updated (merged with original) data into separate table
 
-            //Index investigation document
+
+
         }
     }
 }

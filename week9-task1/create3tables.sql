@@ -5,8 +5,8 @@ drop table if exists Subjects;
 CREATE SEQUENCE Students_seq;
 CREATE TABLE Students (
   id int NOT NULL DEFAULT NEXTVAL ('Students_seq'),
-  name varchar(64) DEFAULT NULL,
-  surname varchar(64) DEFAULT NULL,
+  name varchar(64) DEFAULT NULL CHECK (name not SIMILAR TO '%(@|#|$)%'),
+  surname varchar(64) DEFAULT NULL CHECK (name not SIMILAR TO '%(@|#|$)%'),
   dob date,
   phone bigint NOT NULL,
   skill varchar(64) DEFAULT NULL,
