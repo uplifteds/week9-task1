@@ -65,11 +65,12 @@ public class CDPDBLauncher {
             ExplainMethods.doExplainAnalyzeSearchQuery(stmt);
 
             //Add trigger that will update column updated_datetime to current date in case of updating any of student. (1 point)
-            CRUDTriggers.createTriggerFuncUpdateUpdatedColumn(conn);
-            CRUDTriggers.createSQLTriggerExecFunc(conn);
-            CRUDMethods.doUpdateFieldOfStudentById(conn, Student.phoneFieldName ,1180000001L, 1);
+            CRUDTriggers.createTriggerFuncUpdateUpdatedColumnWithId(conn);
             CRUDTriggers.dropSQLTriggerExecFunc(conn);
-            
+            int updateId = 1;
+            CRUDTriggers.createSQLTriggerExecFuncId(conn, updateId);
+            CRUDMethods.doUpdateFieldOfStudentById(conn, Student.phoneFieldName ,1190000001L, updateId);
+
             // ============================================================================================================
 
             //Add validation on DB level that will check username on special characters (reject student name with next characters '@', '#', '$') (1 point)

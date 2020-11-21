@@ -7,30 +7,35 @@ public class CRUDTriggers {
     static String triggerFuncName = name +"()";
     static String triggerName = "launch" + name;
 
-    public static void createTriggerFuncUpdateUpdatedColumn(Connection conn) throws SQLException {
+    public static void createTriggerFuncUpdateUpdatedColumnWithId(Connection conn) throws SQLException {
         String sqlStoredFunc = "create or replace FUNCTION " + triggerFuncName + " returns trigger as $$\n" +
+                "DECLARE\n" +
+                "    arg INTEGER;\n" +
                 "begin\n" +
-                "IF OLD.* IS DISTINCT FROM NEW.* THEN\n" +
-                " UPDATE students \n" +
-                " SET updated =current_timestamp;\n" +
-                " END IF;\n" +
+                "FOREACH arg IN ARRAY TG_ARGV LOOP\n" +    // TG_ARGV provides ID-parameter passing from Trigger to Func
+                    "IF OLD.* IS DISTINCT FROM NEW.* THEN\n" +
+                        " UPDATE students \n" +
+                        " SET updated =current_timestamp" +
+                        " where id = arg;\n" +
+                    " END IF;\n" +
+                "END LOOP;\n" +
                 "return null;\n" +
                 "end;\n" +
                 "$$ language plpgsql;";
         execPrepStmt(conn, sqlStoredFunc);
     }
 
-    public static void createSQLTriggerExecFunc(Connection conn) throws SQLException {
+    public static void createSQLTriggerExecFuncId(Connection conn, int id) throws SQLException {
         String sqlStoredProc = "CREATE TRIGGER " + triggerName + "\n" +
                 "AFTER UPDATE of name,surname,skill,phone,dob,created ON students\n" +
                 "FOR EACH ROW\n" +
                 "WHEN (OLD.* IS DISTINCT FROM NEW.*)\n" +
-                "EXECUTE FUNCTION " + triggerFuncName + ";";
+                "EXECUTE FUNCTION " + name + "(" + id + ");";
         execPrepStmt(conn, sqlStoredProc);
     }
 
     public static void dropSQLTriggerExecFunc(Connection conn) throws SQLException {
-        String sqlStoredProc = "DROP TRIGGER " + triggerName + "\n" +
+        String sqlStoredProc = "DROP TRIGGER IF EXISTS " + triggerName + "\n" +
                 "ON students;";
         execPrepStmt(conn, sqlStoredProc);
     }
