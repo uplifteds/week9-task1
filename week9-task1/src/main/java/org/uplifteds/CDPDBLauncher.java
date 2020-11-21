@@ -1,6 +1,8 @@
 package org.uplifteds;
 
+import org.uplifteds.crud.CRUDMethods;
 import org.uplifteds.crud.CRUDSelectMethods;
+import org.uplifteds.crud.CRUDTriggers;
 import org.uplifteds.crud.ExplainMethods;
 import org.uplifteds.entity.ExamResult;
 import org.uplifteds.entity.Student;
@@ -45,49 +47,30 @@ public class CDPDBLauncher {
 //            CrudMethods.doReadEntriesFromTable(stmt, listOfTables.get(2));
 //            CrudMethods.doReadEntriesFromTable(stmt, listOfTables.get(0));
 
-
             Student stud2 = CRUDSelectMethods.getStudentByNameExact(stmt,"John");
             ExplainMethods.doExplainAnalyzeSearchQuery(stmt);
-// 1000 row exact search around 11 MILLISEC; with B-tree, and GIN (pg_trgm), hash indexes same time
-//create index hash_idx_name on students using hash(name);
+//see also index_investigation.pdf
 
             String searchSurname = "XTUAKNPS";
             Student stud = CRUDSelectMethods.getStudentBySurnamePartial(stmt,searchSurname);
             ExplainMethods.doExplainAnalyzeSearchQuery(stmt);
-// 1000 row LIKE search around 1 millisec with B-tree, and GIN (pg_trgm) index same; hash
 
             Student stud3 = CRUDSelectMethods.getStudentByPhonePartial(stmt, "8010000499");
             ExplainMethods.doExplainAnalyzeSearchQuery(stmt);
-// 1000 row LIKE search around 1 millisec with B-tree, ; hash
 
             Student stud4 = CRUDSelectMethods.getStudentWithMarkBySurnamePartial(stmt, searchSurname);
             ExplainMethods.doExplainAnalyzeSearchQuery(stmt);
-// 1000 row LIKE search around 3 millisec with B-tree, ; hash
 
             ExamResult er = CRUDSelectMethods.getExamResultByMark(stmt, "20958");
             ExplainMethods.doExplainAnalyzeSearchQuery(stmt);
-// 1Mln rows EXACT-search around 28 millisec; with B-tree 11 millis , and HASH index: 1 millisec
-// 1Mln rows like-search around 42 millisec; with B-tree 42 same millis , HASH index: 33 millisec
 
-            //psql : CREATE EXTENSION pg_trgm;
-            //CREATE INDEX trgm_idx_mark ON examresults USING gin (mark gin_trgm_ops);
-
-            // 1000 student took 4 min without
-
-            //Test queries:
-            //done a. Find user by name (exact match)
-            //done b. Find user by surname (partial match)
-            //done c. Find user by phone number (partial match) // bigint GIN
-            //done d. Find user with marks by user surname (partial match)
-
-            // Try different kind of indexes (B-tree, Hash, GIN, GIST) for your fields.
-            // Analyze performance for each of the indexes (use ANALYZE and EXPLAIN).
-            // Check the size of the index.
-            // Try to set index before inserting test data and after.
-            // What was the time? Test data: 1K of users, subject, 1M of marks
-
-// ============================================================================================================
             //Add trigger that will update column updated_datetime to current date in case of updating any of student. (1 point)
+            CRUDTriggers.createTriggerFuncUpdateUpdatedColumn(conn);
+            CRUDTriggers.createSQLTriggerExecFunc(conn);
+            CRUDMethods.doUpdateFieldOfStudentById(conn, Student.phoneFieldName ,1180000001L, 1);
+            CRUDTriggers.dropSQLTriggerExecFunc(conn);
+            
+            // ============================================================================================================
 
             //Add validation on DB level that will check username on special characters (reject student name with next characters '@', '#', '$') (1 point)
 

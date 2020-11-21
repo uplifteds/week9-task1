@@ -73,7 +73,6 @@ public class CRUDSelectMethods {
         // case-insensitive partial search
         String sql = "SELECT * " +
                 "FROM examresults " +
-//                    "where ExamResults.mark::text like '%" + mark + "%'";
                 "where ExamResults.mark = " + mark + ";";
         ResultSet resultSet = stmt.executeQuery(sql);
 

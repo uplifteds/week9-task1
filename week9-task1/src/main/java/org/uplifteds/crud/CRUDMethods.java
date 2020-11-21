@@ -1,11 +1,11 @@
 package org.uplifteds.crud;
 
 import org.uplifteds.CDPDBLauncher;
+import org.uplifteds.entity.Student;
 
-import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.sql.*;
 
 public class CRUDMethods {
     public static void doDeleteValuesInAllTables(Statement stmt) throws SQLException {
@@ -33,6 +33,23 @@ public class CRUDMethods {
         }
         resultSet.close();
         System.out.println();
+    }
+
+    public static void doUpdateFieldOfStudentById(Connection conn, String fieldName ,Long fieldValue, int id) throws SQLException {
+        String sqlUpdateQuery = "UPDATE students SET " + fieldName + "=? WHERE id=?";
+        PreparedStatement preparedStatement = null;
+        try {
+            preparedStatement = conn.prepareStatement(sqlUpdateQuery);
+            preparedStatement.setLong(1, fieldValue);
+            preparedStatement.setInt(2, id);
+
+            int row = preparedStatement.executeUpdate();
+
+            System.out.println("Student's fieldValue was updated");
+
+        } finally {
+            preparedStatement.close();
+        }
     }
 
 //    public static void doDropLinkedTableIfExists(Statement stmt, String table_name) throws SQLException {
