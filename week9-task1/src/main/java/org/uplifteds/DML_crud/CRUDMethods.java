@@ -1,8 +1,11 @@
 package org.uplifteds.DML_crud;
 
 import org.uplifteds.CDPDBLauncher;
+import org.uplifteds.entity.Student;
 
 import java.sql.*;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class CRUDMethods {
     public static void doDeleteValuesInAllTables(Statement stmt) throws SQLException {
@@ -11,25 +14,6 @@ public class CRUDMethods {
             stmt.executeUpdate(tableToClear);
         }
         System.out.println("Previous values were deleted in all tables ");
-    }
-
-    public static void doReadEntriesFromTable(Statement stmt, String table_name) throws SQLException {
-        String sql = "SELECT * FROM " + table_name;
-        ResultSet resultSet = stmt.executeQuery(sql);
-
-        ResultSetMetaData rsmd = resultSet.getMetaData();
-        int columnsNumber = rsmd.getColumnCount();
-        System.out.println("# Entries were read from table: " + table_name);
-        while (resultSet.next()) {
-            for (int i = 1; i <= columnsNumber; i++) {
-                if (i > 1) System.out.print(",  ");
-                String columnValue = resultSet.getString(i);
-                System.out.print(columnValue + " " + rsmd.getColumnName(i));
-            }
-            System.out.println();
-        }
-        resultSet.close();
-        System.out.println();
     }
 
     public static void doUpdateFieldOfStudentById(Connection conn, String fieldName ,Object fieldValue, int id) throws SQLException {
@@ -49,9 +33,85 @@ public class CRUDMethods {
         }
     }
 
-//    public static void doDropLinkedTableIfExists(Statement stmt, String table_name) throws SQLException {
-//        String delTable = "DROP TABLE IF EXISTS " + table_name;
-//        stmt.executeUpdate(delTable);
-//        System.out.println("Existing Table was DROPPED: " + table_name);
-//    }
+    public static Double calcAvgMarkByStudentId(Statement stmt, int studentId) throws SQLException {
+        String sql = "SELECT avg(mark) " +
+                "FROM examresults " +
+                "where student_id = " + studentId + ";";
+        ResultSet resultSet = stmt.executeQuery(sql);
+
+        Double avg = getAvgMarkInResultSet(resultSet);
+        return avg;
+    }
+
+    public static Double calcAvgMarkBySubjectName(Statement stmt, String subjectName) throws SQLException {
+        String sql = "select avg(examresults.mark) \n" +
+                "from examresults\n" +
+                "inner join subjects on examresults.subject_id = subjects.id\n" +
+                "where subjects.subject_name = '" + subjectName + "';";
+        ResultSet resultSet = stmt.executeQuery(sql);
+
+        Double avg = getAvgMarkInResultSet(resultSet);
+        return avg;
+    }
+
+    private static Double getAvgMarkInResultSet(ResultSet resultSet) throws SQLException {
+        Double columnValue = null;
+        while (resultSet.next()) {
+            columnValue = resultSet.getDouble(1);
+        }
+        resultSet.close();
+        if (columnValue > 0){
+            System.out.println("Average mark for a Student: " + columnValue);
+        }
+        return columnValue;
+    }
+
+    public static void findStudentInRedZoneAtLeastTwoMarksBelowThreshold(Statement stmt, int thresholdmark) throws SQLException {
+        String tempTableName = "studentswithmarkcount";
+        String countThresholdMarkColumnName = "NumberOfMarksBelowThreshold";
+        String sql = "drop table if exists " + tempTableName + ";\n" +
+                "create table " + tempTableName + "\n" +
+                "as \n" +
+                "select count(case when mark <=" + thresholdmark + " then 1 else null end) as " + countThresholdMarkColumnName + ",\n" +
+                "students.id, students.name, students.surname, students.dob,students.phone,students.skill,students.created,students.updated\n" +
+                "from examresults\n" +
+                "inner join students on examresults.student_id = students.id\n" +
+                "where mark <= " + thresholdmark + "\n" +
+                "group by students.id,students.name, students.surname" +
+                ";";
+        stmt.executeUpdate(sql); // drop,create require executeUpdate or execute
+
+        String sql2 = "select id,name,surname,dob,phone,skill,created,updated \n" +
+                "from " + tempTableName + "\n" +
+                "where " + countThresholdMarkColumnName + " >=2;";
+        ResultSet resultSet2 = stmt.executeQuery(sql2); // select require executeQuery
+        findListOfStudentsInResultSet(resultSet2);
+    }
+
+    private static void findListOfStudentsInResultSet(ResultSet resultSet) throws SQLException {
+        ResultSetMetaData rsmd = resultSet.getMetaData();
+        int columnsNumber = rsmd.getColumnCount();
+        System.out.println("\n# Searching Students in REDZONE... ");
+        List<Student> studentList = new CopyOnWriteArrayList<>();
+        List<String> columnList = new CopyOnWriteArrayList<>();
+        while (resultSet.next()) {
+            Student stud = new Student();
+            stud.setId(resultSet.getInt(Student.idFieldName));
+            stud.setName(resultSet.getString(Student.nameFieldName));
+            stud.setSurname(resultSet.getString(Student.surnameFieldName));
+            stud.setDob(resultSet.getDate(Student.dobFieldName));
+            stud.setPhone(resultSet.getLong(Student.phoneFieldName));
+            stud.setSkill(resultSet.getString(Student.skillFieldName));
+            stud.setCreated(resultSet.getTimestamp(Student.createdFieldName));
+            stud.setUpdated(resultSet.getTimestamp(Student.updatedFieldName));
+            studentList.add(stud);
+        }
+        resultSet.close();
+        if (studentList.size() > 0) {
+            for (Student tempStud : studentList) {
+                System.out.println(tempStud.toString());
+            }
+        }
+    }
+
 }

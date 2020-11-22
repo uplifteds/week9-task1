@@ -9,7 +9,7 @@ import java.sql.*;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-public class CRUDSelectMethods {
+public class CRUDSearchMethods {
 
     public static Student getStudentByNameExact(Statement stmt, String name) throws SQLException {
         // case-sensitive exact search
@@ -82,7 +82,6 @@ public class CRUDSelectMethods {
     }
 
     public static ExamResult getExamResultByMark(Statement stmt, String mark) throws SQLException {
-        // case-insensitive partial search
         String sql = "SELECT * " +
                 "FROM examresults " +
                 "where ExamResults.mark = " + mark + ";";
@@ -99,28 +98,6 @@ public class CRUDSelectMethods {
         } else {
             System.out.println("...nothing is found");
         }
-    }
-
-    private static ExamResult findExamResInResultSet(ResultSet resultSet) throws SQLException {
-        ResultSetMetaData rsmd = resultSet.getMetaData();
-        int columnsNumber = rsmd.getColumnCount();
-        System.out.println("\n# Searching ... ");
-        List<Integer> l = new CopyOnWriteArrayList<>();
-        ExamResult er = new ExamResult();
-        while (resultSet.next()) {
-            for (int i = 1; i <= columnsNumber; i++) {
-                Integer columnValue = resultSet.getInt(i);
-                l.add(columnValue);
-            }
-            er.setId(l.get(0));
-            er.setStudent_id(l.get(1));
-            er.setSubject_id(l.get(2));
-            er.setMark(l.get(3));
-        }
-        doFoundCondition(er.getId(), er.toString());
-        resultSet.close();
-
-        return er;
     }
 
     private static Student findStudentInResultSet(ResultSet resultSet) throws SQLException {
@@ -146,6 +123,28 @@ public class CRUDSelectMethods {
         resultSet.close();
         doFoundCondition(stud.getId(), stud.toString());
         return stud;
+    }
+
+    private static ExamResult findExamResInResultSet(ResultSet resultSet) throws SQLException {
+        ResultSetMetaData rsmd = resultSet.getMetaData();
+        int columnsNumber = rsmd.getColumnCount();
+        System.out.println("\n# Searching ... ");
+        List<Integer> l = new CopyOnWriteArrayList<>();
+        ExamResult er = new ExamResult();
+        while (resultSet.next()) {
+            for (int i = 1; i <= columnsNumber; i++) {
+                Integer columnValue = resultSet.getInt(i);
+                l.add(columnValue);
+            }
+            er.setId(l.get(0));
+            er.setStudent_id(l.get(1));
+            er.setSubject_id(l.get(2));
+            er.setMark(l.get(3));
+        }
+        doFoundCondition(er.getId(), er.toString());
+        resultSet.close();
+
+        return er;
     }
 
     private static void setExplainAnalyzeSQLQuery(String sql) {

@@ -25,81 +25,87 @@ public class CDPDBLauncher {
         String user = "javauser"; //non-root user. Granted All permissions on DB
         String password = "plaintextshouldbeencrypted"; // in Prod-env should be stored in Encrypted Secret-Vault
 
-        listOfTables.add("ExamResults"); // has foreign key, therefore added 1st
+        listOfTables.add("ExamResults"); // has foreign key, therefore added 1st (cascade)
         listOfTables.add("Subjects");
         listOfTables.add("Students");
         Student.getFieldNameReflection();
         Subject.getFieldNameReflection();
         ExamResult.getFieldNameReflection();
 
-//        List<Student> listOfStud = StudentGenerator.setListOfStudents();
-//        List<Subject> listOfSubj = SubjectGenerator.setListOfSubjects();
-//        List<ExamResult> listOfExamRes = ExamResultGenerator.setListOfExamResults();
-//generating 1000 students and 10 mln marks takes 4 min
+        List<Student> listOfStud = StudentGenerator.setListOfStudents();
+        List<Subject> listOfSubj = SubjectGenerator.setListOfSubjects();
+        List<ExamResult> listOfExamRes = ExamResultGenerator.setListOfExamResults();
+//generating 1000 students,subjects and 10 mln examresults takes 4 min
 
         try (Connection conn = DriverManager.getConnection(postgresURL, user, password);
              Statement stmt = conn.createStatement()) {
-            //Database table/constraint creation – separate file
-            // Check create3tables.sql
+//Database table/constraint creation – separate file
+// Check create3tables.sql
 
-            // crud insert (student, subject), read, update
-//            CrudMethods.doDeleteValuesInAllTables(stmt); // clean values before inserting
+// crud insert (student, subject), read, update
+            CRUDMethods.doDeleteValuesInAllTables(stmt); // clean values before inserting
 
-//            CRUDInsertMethods.doInsertListOfSubjects   (conn,  listOfTables.get(1), listOfSubj);
-//            CRUDInsertMethods.doInsertListOfStudents   (conn,  listOfTables.get(2), listOfStud);
-//            CRUDInsertMethods.doInsertListOfExamResults(conn,  listOfTables.get(0), listOfExamRes); // has foreign key, therefore filled last
+            CRUDInsertMethods.doInsertListOfSubjects   (conn,  listOfTables.get(1), listOfSubj);
+            CRUDInsertMethods.doInsertListOfStudents   (conn,  listOfTables.get(2), listOfStud);
 
-//            CrudMethods.doReadEntriesFromTable(stmt, listOfTables.get(2));
-//            CrudMethods.doReadEntriesFromTable(stmt, listOfTables.get(0));
+            // has foreign key, therefore filled last (cascade)
+            CRUDInsertMethods.doInsertListOfExamResults(conn,  listOfTables.get(0), listOfExamRes);
 
-            Student stud2 = CRUDSelectMethods.getStudentByNameExact(stmt,"John");
-            ExplainAnalyzeSelectMethods.doExplainAnalyzeSearchQuery(stmt);
+            Student stud2 = CRUDSearchMethods.getStudentByNameExact(stmt,"John");
+//Try different kind of indexes (B-tree, Hash, GIN, GIST) for your fields.
+// Analyze performance for each of the indexes (use ANALYZE and EXPLAIN)
 //see also index_investigation.pdf
+            ExplainAnalyzeSelectMethods.doExplainAnalyzeSearchQuery(stmt);
 
             String searchSurname = "XTUAKNPS";
-            Student stud = CRUDSelectMethods.getStudentBySurnamePartial(stmt,searchSurname);
+            Student stud = CRUDSearchMethods.getStudentBySurnamePartial(stmt,searchSurname);
             ExplainAnalyzeSelectMethods.doExplainAnalyzeSearchQuery(stmt);
 
-            Student stud3 = CRUDSelectMethods.getStudentByPhonePartial(stmt, "7010000499");
+            Student stud3 = CRUDSearchMethods.getStudentByPhonePartial(stmt, "7010000499");
             ExplainAnalyzeSelectMethods.doExplainAnalyzeSearchQuery(stmt);
 
-            Student stud4 = CRUDSelectMethods.getStudentWithMarkBySurnamePartial(stmt, searchSurname);
+            Student stud4 = CRUDSearchMethods.getStudentWithMarkBySurnamePartial(stmt, searchSurname);
             ExplainAnalyzeSelectMethods.doExplainAnalyzeSearchQuery(stmt);
 
-            ExamResult er = CRUDSelectMethods.getExamResultByMark(stmt, "20958");
+            ExamResult er = CRUDSearchMethods.getExamResultByMark(stmt, "20958");
             ExplainAnalyzeSelectMethods.doExplainAnalyzeSearchQuery(stmt);
 
-            //Add trigger that will update column updated_datetime to current date in case of updating any of student. (1 point)
+//Add trigger that will update column updated_datetime to current date in case of updating any of student. (1 point)
             CRUDTriggers.createFuncUpdateUpdatedColumnWithIdPassedFromTrigger(conn);
             CRUDTriggers.dropSQLTriggerExecFunc(conn);
             int studentIdToUpdate = 1;
             CRUDTriggers.createTriggerOnStudentsUpdateAndPassIdToFuncUpdate(conn, studentIdToUpdate);
             long newPhone = 1200000004L;
             CRUDMethods.doUpdateFieldOfStudentById(conn, Student.phoneFieldName ,newPhone, studentIdToUpdate);
-            Student studentTriggered = CRUDSelectMethods.getStudentByIdExact(stmt, studentIdToUpdate);
+            Student studentTriggered = CRUDSearchMethods.getStudentByIdExact(stmt, studentIdToUpdate);
 
-            //Add validation on DB level that will check username on special characters (reject student name with next characters '@', '#', '$')
+//Add validation on DB level that will check username on special characters (reject student name with next characters '@', '#', '$')
 //...CHECK (name not SIMILAR TO '%(@|#|$)%') => constraint added to Students table. Check create3tables.sql
 
 //Create snapshot that will contain next data: student name, student surname, subject name, mark (snapshot means that in
 // case of changing some data in source table – your snapshot should not change) (1 point)
             doSnapshotCloneTables(stmt);
-            CRUDMethods.doUpdateFieldOfStudentById(conn, Student.surnameFieldName ,"NEWSURNAME2", studentIdToUpdate);
-            Student studentTriggered2 = CRUDSelectMethods.getStudentByIdExact(stmt, studentIdToUpdate);
-            Student studentClone = CRUDSelectMethodsCloneTable.getCloneStudentByIdExact(stmt, studentIdToUpdate);
+            CRUDMethods.doUpdateFieldOfStudentById(conn, Student.surnameFieldName ,searchSurname + "a", studentIdToUpdate);
+            Student studentTriggered2 = CRUDSearchMethods.getStudentByIdExact(stmt, studentIdToUpdate);
+            Student studentClone = CRUDSearchMethodsCloneTable.getCloneStudentByIdExact(stmt, studentIdToUpdate);
 
-            // ============================================================================================================
-            // Create function that will return average mark for input user (1 point)
+// Create function that will return average mark for input user (1 point)
+            Double avgMarkOfStudent = CRUDMethods.calcAvgMarkByStudentId(stmt, 2);
 
-            //Create function that will return avarage mark for input subject name (1 point)
+//Create function that will return average mark for input subject name (1 point)
+            Double avgMarkOnSubjectName = CRUDMethods.calcAvgMarkBySubjectName(stmt, "Math");
 
-            // Create function that will return student at "red zone" (red zone means at least 2 marks <=3) (1 point)
+// Create function that will return student at "red zone" (red zone means at least 2 marks <=3) (1 point)
+            int redzoneThreshold = 60; // if 3, then do ExamResultGenerator.setRandRangeEnd(10), because now randRangeEnd = 1000_000
+            // since amount of marks for 1000 students & subjects is 1 mln need to generate unique marks
 
-            //Please, add your changes to GIT task by task
-            // check github.com/uplifteds/week9-task1
+            CRUDMethods.findStudentInRedZoneAtLeastTwoMarksBelowThreshold(stmt, redzoneThreshold);
 
-            //DB design in suitable format
-            // check ER diagram.png
+//Please, add your changes to GIT task by task
+// check github.com/uplifteds/week9-task1
+
+//DB design in suitable format
+// check ER diagram.png
         }
     }
 
@@ -133,13 +139,7 @@ public class CDPDBLauncher {
         for (String tempStr : listOfStudentsTableColumnsToBeDroped){
             sbStudents.append(dropColPrefix + tempStr + ",");
         }
-        sbStudents.setLength(sbStudents.length() - 1); // remove last , from appended string
+        sbStudents.setLength(sbStudents.length() - 1); // remove last "," from appended string
         return sbStudents;
     }
 }
-
-// demo - transitive join from table1 to table3 via transit-table2
-// SELECT           subjects.*
-//FROM             students
-//RIGHT OUTER JOIN examresults ON students.id = examresults.student_id
-//RIGHT OUTER JOIN subjects ON examresults.subject_id = subjects.id

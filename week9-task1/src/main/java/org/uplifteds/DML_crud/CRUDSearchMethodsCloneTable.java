@@ -2,14 +2,13 @@ package org.uplifteds.DML_crud;
 
 import org.uplifteds.CDPDBLauncher;
 import org.uplifteds.DDL.CloneTableDropColumns;
-import org.uplifteds.entity.ExamResult;
 import org.uplifteds.entity.Student;
 
 import java.sql.*;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-public class CRUDSelectMethodsCloneTable {
+public class CRUDSearchMethodsCloneTable {
     public static Student getCloneStudentByIdExact(Statement stmt, int id) throws SQLException {
         // case-sensitive exact search
         String sql = "select * from " + CloneTableDropColumns.cloneTablePrefix + CDPDBLauncher.listOfTables.get(2) +
@@ -37,7 +36,7 @@ public class CRUDSelectMethodsCloneTable {
         }
         resultSet.close();
 
-        CRUDSelectMethods.doFoundCondition(stud.getId(),stud.toString());
+        CRUDSearchMethods.doFoundCondition(stud.getId(),stud.toString());
         System.out.println("Clone Student unchanged");
 
         return stud;
