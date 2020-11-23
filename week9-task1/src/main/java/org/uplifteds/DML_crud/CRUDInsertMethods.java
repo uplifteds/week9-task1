@@ -11,11 +11,7 @@ import java.util.List;
 
 public class CRUDInsertMethods {
     public static void doInsertListOfStudents(Connection conn, String table_name, List<Student> listOfStudents) throws SQLException {
-        String sqlQuery = "insert into " + table_name
-                + "(" + Student.idFieldName + "," + Student.nameFieldName + "," + Student.surnameFieldName + ","
-                + Student.dobFieldName + "," + Student.phoneFieldName + "," + Student.skillFieldName + ","
-                + Student.createdFieldName + "," + Student.updatedFieldName
-                + ") values (?, ?, ?, ?, ?, ?, ?, ?)";
+        String sqlQuery = "insert into " + table_name + " values (?, ?, ?, ?, ?, ?, ?, ?)";
 
         PreparedStatement prepStmt = null;
         try{
@@ -42,9 +38,7 @@ public class CRUDInsertMethods {
     }
 
     public static void doInsertListOfSubjects(Connection conn, String table_name, List<Subject> listOfSubj) throws SQLException {
-        String sqlQuery = "insert into " + table_name
-                + "(" + Subject.idFieldName + "," + Subject.subjectFieldName + "," + Subject.tutorFieldName
-                + ") values (?, ?, ?)";
+        String sqlQuery = "insert into " + table_name + " values (?, ?, ?)";
 
         PreparedStatement prepStmt = null;
         try{
@@ -66,10 +60,7 @@ public class CRUDInsertMethods {
     }
 
     public static void doInsertListOfExamResults(Connection conn, String table_name, List<ExamResult> listOfExamRes) throws SQLException {
-        String sqlQuery = "insert into " + table_name
-                + "(" + ExamResult.idFieldName + "," + ExamResult.student_idFieldName + ","
-                + ExamResult.subject_idFieldName + "," + ExamResult.markFieldName
-                + ") values (?, ?, ?, ?)";
+        String sqlQuery = "insert into " + table_name + " values (?, ?, ?, ?)";
 
         PreparedStatement prepStmt = null;
         try{

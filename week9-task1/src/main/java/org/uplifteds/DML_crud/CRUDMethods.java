@@ -61,7 +61,7 @@ public class CRUDMethods {
         }
         resultSet.close();
         if (columnValue > 0){
-            System.out.println("Average mark for a Student: " + columnValue);
+            System.out.println("Average mark: " + columnValue);
         }
         return columnValue;
     }
